@@ -56,13 +56,13 @@ class MasterCracker:
         self.job_scan_running = False
         self.job_assignment_running = False
 
-        self.start_scheduled_tasts()
+        self.start_scheduled_tasks()
 
     def __create_master_cracker_db(self):
         if not os.path.exists(self.db.db_path) or not self.db.check_tables_exist():
             self.db.create_tables()
 
-    def start_scheduled_tasts(self):
+    def start_scheduled_tasks(self):
         if not self.health_check_thread or not self.health_check_thread.is_alive():
             self.health_check_thread = threading.Thread(target=self.periodic_health_check, daemon=True)
             self.health_check_thread.start()
@@ -109,6 +109,7 @@ class MasterCracker:
             return 0
 
         jobs_completed = 0
+        jobs_rescheduled = 0
 
         for job in in_progress_jobs:
             job_id = job[0]
@@ -144,9 +145,29 @@ class MasterCracker:
 
                         self.complete_job_assignment(crack_result)
                         jobs_completed += 1
+                elif response.status_code == 404:
+                    # Job not found on minion - reschedule it
+                    print(f"Job {job_id} not found on minion {minion.Ip}:{minion.Port}. Rescheduling...")
+                    self.db.update_job_assignment(job_id, None, JobAssignmentStatus.SCHEDULED.value)
+                    self.db.update_minion_status(minion_id, MinionStatus.AVAILABLE.value)
+                    jobs_rescheduled += 1
 
-            except (requests.RequestException, ValueError) as e:
+            except requests.RequestException as e:
                 print(f"Error checking job status for job {job_id} with minion {minion.Ip}:{minion.Port}: {e}")
+                
+                if isinstance(e, (requests.ConnectionError, requests.Timeout)):
+                    print(f"Minion {minion.Ip}:{minion.Port} is unreachable. Rescheduling job {job_id}...")
+                    self.db.update_job_assignment(job_id, None, JobAssignmentStatus.SCHEDULED.value)
+                    
+                    self.__update_minion_as_not_seen(minion_id)
+                    jobs_rescheduled += 1
+            except ValueError as e:
+                print(f"Error checking job status for job {job_id} with minion {minion.Ip}:{minion.Port}: {e}")
+
+        # If any jobs were rescheduled, trigger job assignment
+        if jobs_rescheduled > 0:
+            print(f"Rescheduled {jobs_rescheduled} jobs. Triggering job assignment...")
+            self.send_jobs_to_available_minions()
 
         return jobs_completed
 
@@ -365,6 +386,10 @@ class MasterCracker:
             raise HTTPException(status_code=500, detail="Failed to register minion")
         return minion_id
 
+    def get_hash_reports(self):
+        hash_reports = self.db.get_hash_reports()
+        return hash_reports
+
 
 # todo: validate input for every endpoint
 @app.post("/add-minion")  # todo: also accept local host
@@ -413,6 +438,14 @@ def crack_result(crack_result: CrackResult):
     master = get_master_cracker()
     master.complete_job_assignment(crack_result)
     return {"status": "success"}
+
+
+@app.get("/get-hash-reports")
+def get_hash_reports():
+    master = get_master_cracker()
+    hash_reports = master.get_hash_reports()
+    
+    return [report.to_dict() for report in hash_reports]
 
 
 def main():

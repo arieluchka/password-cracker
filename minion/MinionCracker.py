@@ -66,14 +66,44 @@ class MinionCracker:
         if password_hash in needed_hashes:
             return HashEntry(hash=password_hash, password=password)
 
-    def multi_processing_sub_job(self, password_list, needed_hashes: List[str], max_workers: int):
+    def process_password_batch(self, password_batch: List[str], needed_hashes: List[str]):
+        """Process a batch of passwords and return matches found"""
         results = []
+        for password in password_batch:
+            password_hash = self.calculate_hash(password=password)
+            if password_hash in needed_hashes:
+                results.append(HashEntry(hash=password_hash, password=password))
+        return results
+
+    def multi_processing_sub_job(self, password_list, needed_hashes: List[str], max_workers: int):
+        """Process passwords in parallel using batches for better performance"""
+        results = []
+        
+        # If the list is empty, return immediately
+        if not password_list:
+            return results
+            
+        # Divide passwords into batches based on the number of workers
+        batch_size = max(1, len(password_list) // max_workers)
+        password_batches = []
+        
+        for i in range(0, len(password_list), batch_size):
+            batch = password_list[i:i + batch_size]
+            if batch:  # Ensure we don't add empty batches
+                password_batches.append(batch)
+        
+        # Process batches in parallel
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(self.hash_password, password, needed_hashes) for password in password_list]
+            futures = [
+                executor.submit(self.process_password_batch, batch, needed_hashes) 
+                for batch in password_batches
+            ]
+            
             for future in as_completed(futures):
-                result = future.result()
-                if result is not None:
-                    results.append(result)
+                batch_results = future.result()
+                if batch_results:
+                    results.extend(batch_results)
+                    
         return results
 
     def multi_processing_job(self, password_list, needed_hashes: List[str], max_workers: int=None):
@@ -254,10 +284,11 @@ def main():
     import sys
     parser = argparse.ArgumentParser(description="MinionCracker Service")
     parser.add_argument('--db-path', type=str, help='Path to the minion database file')
+    parser.add_argument('--api-port', type=int, help='Port for the MinionCracker API server')
     args = parser.parse_args()
 
     global minion_cracker
-    minion_cracker = MinionCracker(db_path=args.db_path)
+    minion_cracker = MinionCracker(db_path=args.db_path, api_port=args.api_port)
     try:
         minion_cracker.start_up()
         uvicorn.run(app, host="0.0.0.0", port=minion_cracker.api_port)

@@ -186,3 +186,35 @@ UPDATE job_assignments SET Status = 'Scheduled', MinionId = NULL, AssignmentTime
 WHERE MinionId = ? AND Status = 'InProgress'
 """
 
+# Hash report queries
+get_all_hashes_with_status = """
+SELECT 
+    HashId, 
+    HashValue, 
+    Password, 
+    Status, 
+    CreationTime, 
+    CrackTime 
+FROM password_hashes
+ORDER BY CreationTime DESC
+"""
+
+get_job_stats_for_hash = """
+SELECT 
+    HashId,
+    COUNT(*) AS total_jobs,
+    SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS completed_jobs
+FROM job_assignments
+WHERE HashId = ?
+GROUP BY HashId
+"""
+
+get_all_job_stats = """
+SELECT 
+    HashId,
+    COUNT(*) AS total_jobs,
+    SUM(CASE WHEN Status = 'Completed' THEN 1 ELSE 0 END) AS completed_jobs
+FROM job_assignments
+GROUP BY HashId
+"""
+
