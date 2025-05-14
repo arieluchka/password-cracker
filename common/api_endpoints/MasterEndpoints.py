@@ -1,7 +1,5 @@
 
 
-
-
 class MasterEndpoints:
     class GET:
         MINIONS_STATUS = "/get-minions-status"
