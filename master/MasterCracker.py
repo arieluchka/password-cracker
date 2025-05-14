@@ -15,7 +15,7 @@ from common.models.JobAssignment import JobAssignment
 from common.models.Minion import Minion
 from common.models.NewMinion import NewMinion
 from common.models.statuses.HashStatus import HashStatus
-from common.models.statuses.JobAssignmentStatus import JobAssignmentStatus
+from common.models.statuses.JobStatus import JobStatus
 from common.models.statuses.MinionStatus import MinionStatus
 from common.phone_ranges import _ranges_for_jobs_generator, efficient_phone_num_range, phone_num_range
 from master.master_cracker_db.MasterCrackerDb import MasterCrackerDbInterface
@@ -148,7 +148,7 @@ class MasterCracker:
                 elif response.status_code == 404:
                     # Job not found on minion - reschedule it
                     print(f"Job {job_id} not found on minion {minion.Ip}:{minion.Port}. Rescheduling...")
-                    self.db.update_job_assignment(job_id, None, JobAssignmentStatus.SCHEDULED.value)
+                    self.db.update_job_assignment(job_id, None, JobStatus.SCHEDULED.value)
                     self.db.update_minion_status(minion_id, MinionStatus.AVAILABLE.value)
                     jobs_rescheduled += 1
 
@@ -157,7 +157,7 @@ class MasterCracker:
                 
                 if isinstance(e, (requests.ConnectionError, requests.Timeout)):
                     print(f"Minion {minion.Ip}:{minion.Port} is unreachable. Rescheduling job {job_id}...")
-                    self.db.update_job_assignment(job_id, None, JobAssignmentStatus.SCHEDULED.value)
+                    self.db.update_job_assignment(job_id, None, JobStatus.SCHEDULED.value)
                     
                     self.__update_minion_as_not_seen(minion_id)
                     jobs_rescheduled += 1
@@ -289,7 +289,7 @@ class MasterCracker:
                     timeout=5
                 )
                 if response.status_code == 200:
-                    self.db.update_job_assignment(job.Id, minion.Id, JobAssignmentStatus.INPROGRESS.value)
+                    self.db.update_job_assignment(job.Id, minion.Id, JobStatus.INPROGRESS.value)
                     self.db.update_minion_status(minion.Id, MinionStatus.BUSY.value)
                     return True
             except requests.exceptions.RequestException:
