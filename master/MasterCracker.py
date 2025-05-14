@@ -19,7 +19,7 @@ from common.models.statuses.JobStatus import JobStatus
 from common.models.statuses.MinionStatus import MinionStatus
 from common.phone_ranges import _ranges_for_jobs_generator, efficient_phone_num_range, phone_num_range
 from master.master_cracker_db.MasterCrackerDb import MasterCrackerDbInterface
-
+from common.api_endpoints.MasterEndpoints import MasterEndpoints
 # change this if you want to hash by num order (and not by efficient order)
 PHONE_NUM_RANGES = efficient_phone_num_range
 
@@ -389,14 +389,14 @@ class MasterCracker:
 
 
 # todo: validate input for every endpoint
-@app.post("/add-minion")  # todo: also accept local host
+@app.post(MasterEndpoints.POST.MINION)  # todo: also accept local host
 def add_minion(new_minion: NewMinion):
     master = get_master_cracker()
     minion_id = master.add_new_minion(new_minion)
     return {"status": "success", "minion_id": minion_id}
 
 
-@app.get("/get-minions-status")
+@app.get(MasterEndpoints.GET.MINIONS_STATUS)
 def get_minions_status():
     master = get_master_cracker()
     minions = master.db.get_all_minions()
@@ -412,7 +412,7 @@ def get_minions_status():
     ]
 
 
-@app.post("/add-new-hashes")
+@app.post(MasterEndpoints.POST.NEW_HASHES)
 async def add_new_hashes(hashes: List[str], background_tasks: BackgroundTasks):
     master = get_master_cracker()
     if not hashes or not isinstance(hashes, list):
@@ -430,14 +430,14 @@ async def add_new_hashes(hashes: List[str], background_tasks: BackgroundTasks):
     }
 
 
-@app.post("/crack-result")
+@app.post(MasterEndpoints.POST.CRACK_RESULT)
 def crack_result(crack_result: CrackResult):
     master = get_master_cracker()
     master.complete_job_assignment(crack_result)
     return {"status": "success"}
 
 
-@app.get("/get-hash-reports")
+@app.get(MasterEndpoints.GET.HASH_REPORTS)
 def get_hash_reports():
     master = get_master_cracker()
     hash_reports = master.get_hash_reports()
