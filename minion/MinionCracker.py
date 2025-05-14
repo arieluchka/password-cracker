@@ -67,7 +67,6 @@ class MinionCracker:
             return HashEntry(hash=password_hash, password=password)
 
     def process_password_batch(self, password_batch: List[str], needed_hashes: List[str]):
-        """Process a batch of passwords and return matches found"""
         results = []
         for password in password_batch:
             password_hash = self.calculate_hash(password=password)
@@ -76,14 +75,11 @@ class MinionCracker:
         return results
 
     def multi_processing_sub_job(self, password_list, needed_hashes: List[str], max_workers: int):
-        """Process passwords in parallel using batches for better performance"""
         results = []
         
-        # If the list is empty, return immediately
         if not password_list:
             return results
             
-        # Divide passwords into batches based on the number of workers
         batch_size = max(1, len(password_list) // max_workers)
         password_batches = []
         
@@ -92,7 +88,6 @@ class MinionCracker:
             if batch:  # Ensure we don't add empty batches
                 password_batches.append(batch)
         
-        # Process batches in parallel
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             futures = [
                 executor.submit(self.process_password_batch, batch, needed_hashes) 
@@ -224,7 +219,6 @@ class MinionCracker:
                 thread = threading.Thread(target=self.background_crack, args=(crack_request,), daemon=True)
                 thread.start()
 
-# FastAPI app and endpoints outside the class
 app = FastAPI()
 minion_cracker = None
 

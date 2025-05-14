@@ -248,19 +248,16 @@ class MasterCracker:
             hash_id = hash_entry["HashId"]
 
             try:
-                # Collect all values for batch insertion
                 batch_values = []
                 for start_range, end_range in _ranges_for_jobs_generator(password_ranges=PHONE_NUM_RANGES,
                                                                          passwords_per_job=PASSWORDS_PER_JOB):
                     batch_values.append((int(hash_id), str(start_range), str(end_range)))
 
-                # Perform batch insertion if we have values
                 if batch_values:
                     inserted = self.db.batch_create_job_assignments(batch_values)
                     if inserted:
                         job_assignments_created += inserted
 
-                # Update hash status
                 self.db.update_hash_status(hash_id, HashStatus.IN_PROGRESS.value)
 
             except (ValueError, TypeError) as e:
