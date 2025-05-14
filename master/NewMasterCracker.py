@@ -39,9 +39,13 @@ class NewMasterCracker:
         if status in db busy but real status is available,
         """
 
-
-
-    def check_minion_job_assignments(self, minion_id):
+    def check_and_update_job_assignment(self, minion_id):
+        """
+        will get all InProgress job assignments for specific minion
+        will _get_minion_job_report for every job assignment
+        (?) if Job is done, update the db.
+        (?)
+        """
         pass
 
     def _get_minion_job_report(self, minion: Minion, job_assignment: JobAssignment) -> Job:
@@ -52,3 +56,5 @@ class NewMasterCracker:
         pass
 
 # todo: create seperate class of MinionCommunicator?
+# yes, so there will also be centrelized place for Raising Exceptions and handling them?
+# if adding MinionCommunicator, make it update db every time it had successful interaction (then health-check job will skip checking recently communicated minions)
