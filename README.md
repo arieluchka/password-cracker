@@ -42,7 +42,10 @@ For data persistence (and crash recovery), you can mount a volume for the master
 docker run -it --rm --network host -v master-db:/app/master arieluchka/master-cracker
 ```
 
-### Running Directly on Host
+<br>
+<br>
+
+### Running Directly
 
 #### Prerequisites
 
@@ -74,6 +77,15 @@ python /minion/MinionCracker.py
 
    You can use the swagger http://localhost:5000/docs
 
+If you have import error, try adding the folder path of the project to the `PYTHONPATH` environment variable.
+
+on windows you can do:
+```
+$Env:PYTHONPATH="C:\PATH_TO\password-cracker";python .\minion\MinionCracker.py
+```
+<br>
+<br>
+<br>
 <br>
 <br>
 <br>
