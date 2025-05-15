@@ -6,7 +6,7 @@ from common.models.statuses.JobStatus import JobStatus
 
 
 class MasterCrackerDbInterface:
-    def __init__(self, db_path="MasterCracker.db"):
+    def __init__(self, db_path="MasterCracker.db"): # change to default from cli/env var
         self.db_path = db_path
 
     def __select_query(self, query, args=None):

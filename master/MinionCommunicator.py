@@ -1,9 +1,12 @@
 from common.models.Minion import Minion
 from master.master_cracker_db.MasterCrackerDb import MasterCrackerDbInterface
 from common.api_endpoints.MinionEndpoints import MinionEndpoints
+from common.models.MinionHealth import MinionHealth
+from common.models.JobAssignment import JobAssignment
+from common.crack_objects.Job import Job
 import requests
 
-# benefits?
+# benefits
 #   organized
 #   centalized logging?
 
@@ -15,19 +18,27 @@ class MinionCommunicator:
 
         self.__db = MasterCrackerDbInterface()
 
-    def __get(self, path, foo):
-        requests.get(
-            url=self.base_url + path
-        )
-
-    # @property
-    def get_minion_job_report(self, minion: Minion, job_assignment: JobAssignment) -> Job:
+    def get_job_report(self, job_assignment: JobAssignment) -> Job:
         """
         will send a GET for status of specific hash
         will return the Job
         """
         requests.get(
-            MinionEndpoints
+            url=MinionEndpoints.GET.STATUS.format(
+                status="",
+                start_range="",
+                end_range="",
+            )
         )
 
-        pass
+    def send_job_assignment(self, job_assignment: JobAssignment) -> bool:
+        # MinionEndpoints.POST.CRACK
+        # HAVE ERROR RAISES?
+        ...
+
+
+
+    def get_health(self) -> MinionHealth:
+        # MinionEndpoints.GET.HEALTH
+        res = MinionHealth()
+        return res

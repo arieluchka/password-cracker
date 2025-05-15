@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 from common.models.statuses.JobStatus import JobStatus
+
 @dataclass
 class Job:
     Id: int

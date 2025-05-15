@@ -3,16 +3,12 @@ from common.models.JobAssignment import JobAssignment
 from common.crack_objects.Job import Job
 from common.models.Minion import Minion
 from typing import List
-
+from master.master_cracker_db.MasterCrackerDb import MasterCrackerDbInterface
+from master.MinionCommunicator import MinionCommunicator
 
 class NewMasterCracker:
     def __init__(self):
-        pass
-
-
-    def send_job_assignment_to_minion(self, minion_ip, minion_port):
-        """will pick next scheduled job assignment from db, and send to minion ip and port"""
-        pass
+        self.db = MasterCrackerDbInterface()
 
     def send_job_assignments_to_all_free_minions(self, minions_list = List[Minion]):
         """
@@ -27,6 +23,16 @@ class NewMasterCracker:
 
         """
 
+    def send_job_assignment_to_minion(self, minion: Minion):
+        """will pick next scheduled job assignment from db, and send to minion ip and port"""
+        job_assignment = self.db.get_scheduled_job_assignments(limit=1)[0]
+        job_success = MinionCommunicator(minion).send_job_assignment(
+            job_assignment
+        )
+        assert job_success # should always return true (if job was successful)
+
+
+
     def _check_minion_status(self, minion: Minion) -> MinionStatus:
         """
         send GET status to minion and return its status
@@ -39,13 +45,17 @@ class NewMasterCracker:
         if status in db busy but real status is available,
         """
 
-    def check_and_update_job_assignment(self, minion_id):
+
+    def _check_and_update_job_assignment(self, minion: Minion, job_assignment: JobAssignment):
         """
-        will get all InProgress job assignments for specific minion
+        WONT REQUEST JOBASSIGNMENT ITSELF FROM DB, AS IT CAN BE CALLED FOR ONE MINION CHECK OR FOR MULTIPLE
         will _get_minion_job_report for every job assignment
-        (?) if Job is done, update the db.
-        (?)
+        (?) if Job is done, update the jobass table (should also change minion status?).
+        (?) trigger another call to g
         """
+        minion_communicator = MinionCommunicator(minion=minion)
+        minion_job = minion_communicator.get_job_report(job_assignment)
+        ...
         pass
 
     def _get_minion_job_report(self, minion: Minion, job_assignment: JobAssignment) -> Job:
