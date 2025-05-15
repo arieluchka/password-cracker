@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from typing import Optional
-
+from common.models.statuses.JobStatus import JobStatus
 @dataclass
 class Job:
     Id: int
     StartRange: str
     EndRange: str
-    Status: str
-    HashId: Optional[int] = None
+    Status: JobStatus | str # todo: change all occourances to use JobAssignmentStatus
+    HashId: Optional[int] = None # remove hash id?
     HashValue: Optional[str] = None
     
     def is_finished(self) -> bool:

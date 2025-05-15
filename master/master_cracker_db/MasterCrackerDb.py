@@ -2,7 +2,7 @@ import sqlite3
 from .db_queries import *
 from common.models.Minion import Minion
 from common.models.JobAssignment import JobAssignment
-from common.models.statuses.JobAssignmentStatus import JobAssignmentStatus
+from common.models.statuses.JobStatus import JobStatus
 
 
 class MasterCrackerDbInterface:
@@ -137,7 +137,7 @@ class MasterCrackerDbInterface:
             HashId=row[1],
             StartRange=row[2],
             EndRange=row[3],
-            Status=JobAssignmentStatus.SCHEDULED
+            Status=JobStatus.SCHEDULED
         ) for row in rows]
     
     def update_job_assignment(self, job_id, minion_id, status="InProgress"):
@@ -159,7 +159,7 @@ class MasterCrackerDbInterface:
                 MinionId=row[2],
                 StartRange=row[3],
                 EndRange=row[4],
-                Status=JobAssignmentStatus(row[5]) if row[5] else JobAssignmentStatus.SCHEDULED
+                Status=JobStatus(row[5]) if row[5] else JobStatus.SCHEDULED
             )
         except (ValueError, TypeError) as e:
             print(f"Error in get_job_assignment: {e}")

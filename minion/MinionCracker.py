@@ -18,7 +18,7 @@ import os.path
 import threading
 import socket
 import argparse
-
+from common.api_endpoints.MinionEndpoints import MinionEndpoints
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
@@ -228,7 +228,7 @@ def get_minion_cracker():
         minion_cracker = MinionCracker()
     return minion_cracker
 
-@app.post("/crack")
+@app.post(MinionEndpoints.POST.CRACK)
 async def crack(crack_request: CrackRequest, background_tasks: BackgroundTasks):
     minion = get_minion_cracker()
     if minion.active_job:
@@ -244,7 +244,7 @@ async def crack(crack_request: CrackRequest, background_tasks: BackgroundTasks):
     background_tasks.add_task(minion.background_crack, crack_request)
     return {"status": "accepted", "message": "Cracking job started"}
 
-@app.get("/health")
+@app.get(MinionEndpoints.GET.HEALTH)
 async def health_check():
     minion = get_minion_cracker()
     if minion.active_job:
@@ -252,7 +252,7 @@ async def health_check():
     else:
         return {"status": MinionStatus.AVAILABLE, "timestamp": datetime.now().isoformat()}
 
-@app.get("/status/{hash_value}/{start_range}/{end_range}")
+@app.get(MinionEndpoints.GET.STATUS)
 async def get_status(hash_value: str, start_range: str, end_range: str):
     minion = get_minion_cracker()
     minion.logger.debug(f"Status check for hash: {hash_value}, range: {start_range} to {end_range}")

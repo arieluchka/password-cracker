@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from .statuses.JobAssignmentStatus import JobAssignmentStatus
+from .statuses.JobStatus import JobStatus
 
 @dataclass
 class JobAssignment:
@@ -8,7 +8,7 @@ class JobAssignment:
     HashId: int
     StartRange: str
     EndRange: str
-    Status: JobAssignmentStatus = JobAssignmentStatus.SCHEDULED
+    Status: JobStatus = JobStatus.SCHEDULED
     MinionId: Optional[int] = None
     AssignmentTime: Optional[str] = None
     CompletionTime: Optional[str] = None
